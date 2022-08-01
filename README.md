@@ -6,6 +6,7 @@ Here is the jupyter notebook with the code performed for building the trees and 
 **Things to do**
 
 We will need also to generate the docker and python scripts to use the model for predicition of the datasets they have.
+We will need to check thresholds, now the program predict a probability, we need to select which one are predicted as 1 or 0, based on the ROC curves.
 
 **Things I already tryed**
 
