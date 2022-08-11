@@ -1,4 +1,3 @@
-import argparse
 from joblib import load
 import pandas as pd
 import numpy as np
@@ -55,12 +54,12 @@ X_train_phylo=X_train[phylo.columns]
 filename = 'Models/kmediods_species_final.sav'
 km = load(filename)
 
-X_train["Kmediods_cluster"]=km.labels_
+X_train["Kmediods_cluster"]=km.predict(X_train_species)
 
 filename = 'Models/kmediods_phylo_final.sav'
 km_phylo = load(filename)
 
-X_train["Kmediods_phylo"]=km_phylo.labels_
+X_train["Kmediods_phylo"]=km_phylo.predict(X_train_phylo)
 
 dis_variables = X_train.select_dtypes(exclude=np.number).columns.to_list()+["Kmediods_cluster","Kmediods_phylo"]
 num_variables = (
@@ -68,25 +67,19 @@ num_variables = (
     .drop(["Kmediods_cluster","Kmediods_phylo"]).to_list()
 )
 
-
-#Pre-processing pipeline
-cat_transformer = Pipeline([('imputer', SimpleImputer(strategy='constant', fill_value='missing')), 
-                     ('onehot', OneHotEncoder(handle_unknown='ignore'))])
-num_transformer = Pipeline([('scaler', StandardScaler())])
-term_trans = ColumnTransformer(
-    transformers=[
-        ('num', num_transformer, num_variables),
-        ('cat', cat_transformer, dis_variables)])
-
 filename = 'Models/RandomForest_preterm_final.sav'
 term_pipe_RF = load(filename)
-
+filename = 'Models/RandomForest_early_preterm_final.sav'
+early_term_pipe_RF = load(filename)
 preds = term_pipe_RF.predict(X_train)
+early_preds = early_term_pipe_RF.predict(X_train)
 
 output = pd.DataFrame(metadata['participant_id'])
 output.loc[:, 'pred_proba_was_preterm'] = preds
-output.loc[:, 'pred_was_preterm'] = preds > 0.5
-to_return = output.groupby('participant_id').apply('max')
+output.loc[:, 'pred_was_preterm'] = preds > 0.274311
+output.loc[:, 'pred_proba_was_early_preterm'] = early_preds
+output.loc[:, 'pred_was_early_preterm'] = preds > 0.113617
+to_return = output.groupby('participant_id').min()
 
 filename = 'output/predictions.csv'
 to_return.to_csv(filename)
