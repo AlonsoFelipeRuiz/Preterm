@@ -88,11 +88,12 @@ preds = term_pipe_RF.predict(X_train)
 early_preds = early_term_pipe_RF.predict(X_train)
 
 output = pd.DataFrame(metadata['participant_id'])
-output.loc[:, 'pred_proba_was_preterm'] = preds
-output.loc[:, 'pred_was_preterm'] = preds > 0.274311
-output.loc[:, 'pred_proba_was_early_preterm'] = early_preds
-output.loc[:, 'pred_was_early_preterm'] = preds > 0.113617
-to_return = output.groupby('participant_id').min()
+output.rename(columns={'participant_id': 'participant'}, inplace=True)
+output.loc[:, 'was_preterm'] = preds > 0.274311
+output.loc[:, 'probability'] = preds
+#output.loc[:, 'pred_proba_was_early_preterm'] = early_preds
+#output.loc[:, 'pred_was_early_preterm'] = preds > 0.113617
+to_return = output.groupby('participant').min()
 
 filename = args.output_dir + '/predictions.csv'
 to_return.to_csv(filename)
